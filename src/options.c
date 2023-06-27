@@ -436,7 +436,7 @@ int iGetNumLines(char cFile[]) {
   FILE *fp;
   char cLine[LINE];
 
-  fprintf(stderr,"File: %s\n",cFile);
+  //fprintf(stderr,"File: %s\n",cFile);
 
   fp = fopen(cFile, "r");
   if (fp == NULL) {
@@ -489,7 +489,7 @@ void InitializeInput(INFILE *input) {
   FILE *fp;
   char cLine[LINE];
 
-fprintf(stderr,"File: %s\n",input->cIn);
+  //fprintf(stderr,"File: %s\n",input->cIn);
 
   fp = fopen(input->cIn, "r");
   if (fp == NULL) {

@@ -1594,7 +1594,7 @@ void VerifyPerturbersEqtide(BODY *body, FILES *files, OPTIONS *options,
   int *bFound = malloc(iNumBodies*sizeof(int));
 
   for (iBody = 0; iBody < iNumBodies; iBody++) {
-    fprintf(stderr,"Body: %s\n",body[iBody].cName);
+    //fprintf(stderr,"Body: %s\n",body[iBody].cName);
     if (body[iBody].bEqtide) {
       if (body[iBody].iTidePerts > 0) {
         for (iPert = 0; iPert < body[iBody].iTidePerts; iPert++) {

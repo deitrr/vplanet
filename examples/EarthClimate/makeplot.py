@@ -105,7 +105,8 @@ def comp2huybers(plname, xrange=False, show=True):
     temp = np.reshape(body.TempLandLat, (ntimes, nlats))
     ax1 = plt.subplot(7, 1, 5)
     c = plt.contourf(
-        body.Time / 1e6, lats[lats > 58 * u.deg], temp.T[lats > 58 * u.deg], 20
+#        body.Time / 1e6, lats[lats > 58 * u.deg], temp.T[lats > 58 * u.deg], 20
+        body.Time / 1e6, lats[lats > 58], temp.T[lats > 58], 20
     )
     plt.ylabel("Latitude")
 
@@ -313,7 +314,7 @@ def seasonal_maps(time, show=True):
             check = 1
 
     if check == 0:
-        raise StandardError("Climate data not found for time %f" % time)
+        raise Exception("Climate data not found for time %f" % time)
 
     insol = np.loadtxt(insolf, unpack=True)
     temp = np.loadtxt(tempf, unpack=True)
@@ -351,7 +352,7 @@ def seasonal_maps(time, show=True):
             try:
                 longp = (
                     getattr(output.log.initial, plname).LongA
-                    + getattr(out.log.initial, plname).ArgP
+                    + getattr(output.log.initial, plname).ArgP
                 )
                 if longp.unit == "rad":
                     longp *= 180 / np.pi
