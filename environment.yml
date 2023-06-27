@@ -26,3 +26,4 @@ dependencies:
       - pre-commit
       - clang-format
       - seaborn
+      -astropy=5.0

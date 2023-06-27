@@ -105,8 +105,7 @@ def comp2huybers(plname, xrange=False, show=True):
     temp = np.reshape(body.TempLandLat, (ntimes, nlats))
     ax1 = plt.subplot(7, 1, 5)
     c = plt.contourf(
-#        body.Time / 1e6, lats[lats > 58 * u.deg], temp.T[lats > 58 * u.deg], 20
-        body.Time / 1e6, lats[lats > 58], temp.T[lats > 58], 20
+        body.Time / 1e6, lats[lats > 58 * u.deg], temp.T[lats > 58 * u.deg], 20
     )
     plt.ylabel("Latitude")
 
