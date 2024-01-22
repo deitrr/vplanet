@@ -822,6 +822,13 @@ struct BODY {
   double *daWaterFrac;  /**< Fraction of cell which is water */
   double *daXBoundary;  /**< Locations of grid boundaries in x = sin(lat) */
   double *daYBoundary;  /**< Locations of grid boundaries in y = R*lat */
+  double
+        *daAlbSurfAvgL; /**< Orbit average surface albedo by latitude on land */
+  double *
+        daAlbSurfAvgW; /**< Orbit average surface albedo by latitude on water */
+  double *daAlbSurfLand;  /**< Albedo of land by latitude */
+  double *daAlbSurfWater; /**< Albedo of land by latitude */
+
 
   // FLARE
   int bFlare;

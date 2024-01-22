@@ -2060,6 +2060,11 @@ void InitializeClimateParams(BODY *body, int iBody, int iVerbose) {
     body[iBody].daPlanckBAvg   = malloc(body[iBody].iNumLats * sizeof(double));
     body[iBody].daIceAccumTot  = malloc(body[iBody].iNumLats * sizeof(double));
     body[iBody].daIceAblateTot = malloc(body[iBody].iNumLats * sizeof(double));
+    body[iBody].daAlbSurfLand  = malloc(body[iBody].iNumLats * sizeof(double));
+    body[iBody].daAlbSurfWater = malloc(body[iBody].iNumLats * sizeof(double));
+    body[iBody].daAlbSurfAvgL  = malloc(body[iBody].iNumLats * sizeof(double));
+    body[iBody].daAlbSurfAvgW  = malloc(body[iBody].iNumLats * sizeof(double));
+
 
     InitializeLandWater(body, iBody);
     body[iBody].dLatFHeatCp    = 83.5; // CC sez this is about right
@@ -3752,6 +3757,36 @@ void WriteEnergyResW(BODY *body, CONTROL *control, OUTPUT *output,
   }
 }
 
+void WriteAlbSurfLandLat(BODY *body, CONTROL *control, OUTPUT *output,
+                         SYSTEM *system, UNITS *units, UPDATE *update,
+                         int iBody, double *dTmp, char cUnit[]) {
+
+  if (body[iBody].iClimateModel == ANN || body[iBody].bSkipSeas == 1) {
+
+    *dTmp = body[iBody].daAlbedoAnn[body[iBody].iWriteLat];
+
+  } else if (body[iBody].iClimateModel == SEA) {
+
+    *dTmp = body[iBody].daAlbSurfAvgL[body[iBody].iWriteLat];
+  }
+  strcpy(cUnit, "");
+}
+
+void WriteAlbSurfWaterLat(BODY *body, CONTROL *control, OUTPUT *output,
+                          SYSTEM *system, UNITS *units, UPDATE *update,
+                          int iBody, double *dTmp, char cUnit[]) {
+
+  if (body[iBody].iClimateModel == ANN || body[iBody].bSkipSeas == 1) {
+
+    *dTmp = body[iBody].daAlbedoAnn[body[iBody].iWriteLat];
+
+  } else if (body[iBody].iClimateModel == SEA) {
+
+    *dTmp = body[iBody].daAlbSurfAvgW[body[iBody].iWriteLat];
+  }
+  strcpy(cUnit, "");
+}
+
 void InitializeOutputPoise(OUTPUT *output, fnWriteOutput fnWrite[]) {
   sprintf(output[OUT_TGLOBAL].cName, "TGlobal");
   sprintf(output[OUT_TGLOBAL].cDescr, "Global mean temperature from POISE");
@@ -3931,7 +3966,7 @@ void InitializeOutputPoise(OUTPUT *output, fnWriteOutput fnWrite[]) {
   fnWrite[OUT_ALBEDOLAT]           = &WriteAlbedoLat;
 
   sprintf(output[OUT_ALBEDOLANDLAT].cName, "AlbedoLandLat");
-  sprintf(output[OUT_ALBEDOLANDLAT].cDescr, "Land surface albedo by latitude.");
+  sprintf(output[OUT_ALBEDOLANDLAT].cDescr, "Land (total) albedo by latitude.");
   output[OUT_ALBEDOLANDLAT].bNeg  = 0;
   output[OUT_ALBEDOLANDLAT].iNum  = 1;
   output[OUT_ALBEDOLANDLAT].bGrid = 1;
@@ -3939,11 +3974,27 @@ void InitializeOutputPoise(OUTPUT *output, fnWriteOutput fnWrite[]) {
 
   sprintf(output[OUT_ALBEDOWATERLAT].cName, "AlbedoWaterLat");
   sprintf(output[OUT_ALBEDOWATERLAT].cDescr,
-          "Water surface albedo by latitude.");
+          "Water (total) albedo by latitude.");
   output[OUT_ALBEDOWATERLAT].bNeg  = 0;
   output[OUT_ALBEDOWATERLAT].iNum  = 1;
   output[OUT_ALBEDOWATERLAT].bGrid = 1;
   fnWrite[OUT_ALBEDOWATERLAT]      = &WriteAlbedoWaterLat;
+
+  sprintf(output[OUT_ALBSURFLANDLAT].cName, "AlbSurfLandLat");
+  sprintf(output[OUT_ALBSURFLANDLAT].cDescr,
+          "Land surface albedo by latitude.");
+  output[OUT_ALBSURFLANDLAT].bNeg  = 0;
+  output[OUT_ALBSURFLANDLAT].iNum  = 1;
+  output[OUT_ALBSURFLANDLAT].bGrid = 1;
+  fnWrite[OUT_ALBSURFLANDLAT]      = &WriteAlbSurfLandLat;
+
+  sprintf(output[OUT_ALBSURFWATERLAT].cName, "AlbSurfWaterLat");
+  sprintf(output[OUT_ALBSURFWATERLAT].cDescr,
+          "Water surface albedo by latitude.");
+  output[OUT_ALBSURFWATERLAT].bNeg  = 0;
+  output[OUT_ALBSURFWATERLAT].iNum  = 1;
+  output[OUT_ALBSURFWATERLAT].bGrid = 1;
+  fnWrite[OUT_ALBSURFWATERLAT]      = &WriteAlbSurfWaterLat;
 
   sprintf(output[OUT_ANNUALINSOL].cName, "AnnInsol");
   sprintf(output[OUT_ANNUALINSOL].cDescr, "Annual insolation by latitude.");
@@ -6246,6 +6297,7 @@ void AlbedoTOAhm16(BODY *body, double zenith, int iBody, int iLat) {
 
     albtmp = body[iBody].dAlbedoLand;
   }
+  body[iBody].daAlbSurfLand[iLat] = albtmp;
 
   if (body[iBody].daTempLand[iLat] <= (-23.15)) {
 
@@ -6267,6 +6319,7 @@ void AlbedoTOAhm16(BODY *body, double zenith, int iBody, int iLat) {
   } else {
     albtmp = AlbedoTaylor(zenith);
   }
+  body[iBody].daAlbSurfWater[iLat] = albtmp;
 
   if (body[iBody].daTempWater[iLat] <= (-23.15)) {
 
@@ -6314,6 +6367,7 @@ void AlbedoTOAwk97(BODY *body, double zenith, int iBody, int iLat) {
 
     albtmp = body[iBody].dAlbedoLand;
   }
+  body[iBody].daAlbSurfLand[iLat] = albtmp;
 
   if (body[iBody].daTempLand[iLat] >= -83.15 &&
       body[iBody].daTempLand[iLat] <= (6.85)) {
@@ -6342,6 +6396,7 @@ void AlbedoTOAwk97(BODY *body, double zenith, int iBody, int iLat) {
 
     albtmp = AlbedoTaylor(zenith);
   }
+  body[iBody].daAlbSurfWater[iLat] = albtmp;
 
   if (body[iBody].daTempWater[iLat] >= -83.15 &&
       body[iBody].daTempWater[iLat] <= (6.85)) {
@@ -6390,6 +6445,8 @@ void AlbedoTOAsms09(BODY *body, double zenith, int iBody, int iLat) {
 
     body[iBody].daAlbedoLand[iLat] = body[iBody].dIceAlbedo;
   }
+  body[iBody].daAlbSurfLand[iLat]  = body[iBody].daAlbedoLand[iLat];
+  body[iBody].daAlbSurfWater[iLat] = body[iBody].daAlbedoWater[iLat];
 }
 
 /**
@@ -6426,13 +6483,18 @@ void fvAlbedoSeasonal(BODY *body, int iBody, int iDay) {
             body[iBody].dAlbedoWater +
             0.08 * (3. * (sin(dZenith) * sin(dZenith)) - 1.) / 2.;
 
+      body[iBody].daAlbSurfLand[iLat]  = body[iBody].dAlbedoLand;
+      body[iBody].daAlbSurfWater[iLat] = body[iBody].dAlbedoWater;
+
       if (body[iBody].daIceMassTmp[iLat] > 0 ||
           body[iBody].daTempLand[iLat] <= -2) {
 
-        body[iBody].daAlbedoLand[iLat] = body[iBody].dIceAlbedo;
+        body[iBody].daAlbedoLand[iLat]  = body[iBody].dIceAlbedo;
+        body[iBody].daAlbSurfLand[iLat] = body[iBody].dIceAlbedo;
       }
       if (body[iBody].daTempWater[iLat] <= body[iBody].dFrzTSeaIce) {
-        body[iBody].daAlbedoWater[iLat] = body[iBody].dIceAlbedo;
+        body[iBody].daAlbedoWater[iLat]  = body[iBody].dIceAlbedo;
+        body[iBody].daAlbSurfWater[iLat] = body[iBody].dIceAlbedo;
       }
     }
     body[iBody].daAlbedoLW[iLat] =
@@ -6836,6 +6898,8 @@ void fvPoiseSeasonalInitialize(BODY *body, int iBody, int iYear) {
     body[iBody].daTempMaxLW[iLat]        = -1 * dHUGE;
     body[iBody].daTempMaxLand[iLat]      = -1 * dHUGE;
     body[iBody].daTempMaxWater[iLat]     = -1 * dHUGE;
+    body[iBody].daAlbSurfAvgL[iLat]      = 0.0;
+    body[iBody].daAlbSurfAvgW[iLat]      = 0.0;
 
     if (iYear == 0) {
       // reset ice sheet stuff only on first year
@@ -6948,6 +7012,10 @@ void fvPoiseAnnualAveragesByLatitude(BODY *body, int iBody, int iLat) {
         body[iBody].daFluxIn[iLat] / body[iBody].iNStepInYear;
   body[iBody].daFluxOutAvg[iLat] +=
         body[iBody].daFluxOut[iLat] / body[iBody].iNStepInYear;
+  body[iBody].daAlbSurfAvgL[iLat] +=
+        body[iBody].daAlbSurfLand[iLat] / body[iBody].iNStepInYear;
+  body[iBody].daAlbSurfAvgW[iLat] +=
+        body[iBody].daAlbSurfWater[iLat] / body[iBody].iNStepInYear;
 }
 
 void fvPoiseDailyProps(BODY *body, int iBody, int iLat, int iNyear,
