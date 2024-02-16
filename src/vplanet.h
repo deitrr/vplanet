@@ -810,6 +810,7 @@ struct BODY {
   double *daPlanckBSea;    /**< Array of Planck B values in seasonal model */
   double **daPlanckBDaily; /**< Array of Planck B values over seasonal cycle */
   double *daPlanckBAvg; /**< Orbit averaged Planck B values in seasonal model */
+  double *daPlanckAAvg; /**< Orbit averaged Planck B values in seasonal model */
   int *iaRowswapSea;    /**< Interchanged rows in seasonal matrix inversion */
   double *daScaleSea;   /**< Used in matrix inversion routine */
   double *daSeaIceHeight; /**< Sea ice height by latitude */

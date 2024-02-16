@@ -179,6 +179,7 @@
 #define OUT_NORTHICEBELTLATSEA 1973
 #define OUT_SOUTHICEBELTLATLAND 1974
 #define OUT_SOUTHICEBELTLATSEA 1975
+#define OUT_PLANCKAAVG 1976
 
 /* @cond DOXYGEN_OVERRIDE */
 
@@ -229,6 +230,8 @@ void WritePlanckB(BODY *, CONTROL *, OUTPUT *, SYSTEM *, UNITS *, UPDATE *, int,
                   double *, char[]);
 void WritePlanckBAvg(BODY *, CONTROL *, OUTPUT *, SYSTEM *, UNITS *, UPDATE *,
                      int, double *, char[]);
+void WritePlanckAAvg(BODY *, CONTROL *, OUTPUT *, SYSTEM *, UNITS *, UPDATE *,
+                    int, double *, char[]);
 void WriteSeasonalTemp(BODY *, CONTROL *, OUTPUT *, SYSTEM *, UNITS *, UPDATE *,
                        int, double *, char[]);
 void WriteSeasonalFluxes(BODY *, CONTROL *, OUTPUT *, SYSTEM *, UNITS *,

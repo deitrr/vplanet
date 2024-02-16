@@ -2255,6 +2255,7 @@ void InitializeClimateParams(BODY *body, int iBody, int iVerbose) {
     body[iBody].daPlanckBDaily =
           malloc(body[iBody].iNumLats * sizeof(double *));
     body[iBody].daPlanckBAvg   = malloc(body[iBody].iNumLats * sizeof(double));
+    body[iBody].daPlanckAAvg   = malloc(body[iBody].iNumLats * sizeof(double));
     body[iBody].daIceAccumTot  = malloc(body[iBody].iNumLats * sizeof(double));
     body[iBody].daIceAblateTot = malloc(body[iBody].iNumLats * sizeof(double));
 
@@ -2387,6 +2388,7 @@ void InitializeClimateParams(BODY *body, int iBody, int iVerbose) {
             body[iBody].daPlanckASea[iLat] =
                   fdOLRwk97(body, iBody, iLat, SEA) -
                   body[iBody].daPlanckBSea[iLat] * (body[iBody].daTempLW[iLat]);
+            body[iBody].daPlanckAAvg[iLat] = body[iBody].daPlanckASea[iLat];
           } else if (body[iBody].iOLRModel == HM16) {
             /* Calculate A and B from haqq-misra+ 2016 result */
             body[iBody].daPlanckBSea[iLat] =
@@ -2395,6 +2397,7 @@ void InitializeClimateParams(BODY *body, int iBody, int iVerbose) {
             body[iBody].daPlanckASea[iLat] =
                   fdOLRhm16(body, iBody, iLat, SEA) -
                   body[iBody].daPlanckBSea[iLat] * (body[iBody].daTempLW[iLat]);
+            body[iBody].daPlanckAAvg[iLat] = body[iBody].daPlanckASea[iLat];
           } else if (body[iBody].iOLRModel == KG24) {
             body[iBody].daPlanckBSea[iLat] = body[iBody].dPlanckB;
             body[iBody].daPlanckBAvg[iLat] = body[iBody].daPlanckBSea[iLat];
@@ -2407,11 +2410,13 @@ void InitializeClimateParams(BODY *body, int iBody, int iVerbose) {
             body[iBody].daPlanckASea[iLat] =
                   fdOLRsms09(body, iBody, iLat, SEA) -
                   body[iBody].daPlanckBSea[iLat] * (body[iBody].daTempLW[iLat]);
+            body[iBody].daPlanckAAvg[iLat] = body[iBody].daPlanckASea[iLat];
           }
         } else {
           body[iBody].daPlanckBSea[iLat] = body[iBody].dPlanckB;
           body[iBody].daPlanckBAvg[iLat] = body[iBody].daPlanckBSea[iLat];
           body[iBody].daPlanckASea[iLat] = body[iBody].dPlanckA;
+          body[iBody].daPlanckAAvg[iLat] = body[iBody].daPlanckASea[iLat];
         }
       }
 
@@ -2455,6 +2460,7 @@ void InitializeClimateParams(BODY *body, int iBody, int iVerbose) {
       for (iLat = 0; iLat < body[iBody].iNumLats; iLat++) {
          body[iBody].daPlanckASea[iLat] = body[iBody].dPlanckA; //placeholder--replace with Karen's code
          //use dTGlobal for this calculation
+         body[iBody].daPlanckAAvg[iLat] = body[iBody].daPlanckASea[iLat];
       }
     }
 
@@ -3834,6 +3840,25 @@ void WritePlanckBAvg(BODY *body, CONTROL *control, OUTPUT *output,
   //   }
 }
 
+
+void WritePlanckAAvg(BODY *body, CONTROL *control, OUTPUT *output,
+                     SYSTEM *system, UNITS *units, UPDATE *update, int iBody,
+                     double *dTmp, char cUnit[]) {
+
+  if (body[iBody].bIceSheets) {
+    *dTmp = body[iBody].daPlanckAAvg[body[iBody].iWriteLat];
+  } else {
+    *dTmp = 0.0;
+  }
+
+  // if (output->bDoNeg[iBody]) {
+  //     strcpy(cUnit,output->cNeg);
+  //   } else {
+  //     *dTmp /= fdUnitsLength(units->iLength);
+  //     fsUnitsLength(units->iLength,cUnit);
+  //   }
+}
+
 void WriteDIceMassDt(BODY *body, CONTROL *control, OUTPUT *output,
                      SYSTEM *system, UNITS *units, UPDATE *update, int iBody,
                      double *dTmp, char cUnit[]) {
@@ -4302,6 +4327,15 @@ void InitializeOutputPoise(OUTPUT *output, fnWriteOutput fnWrite[]) {
   output[OUT_PLANCKBAVG].bGrid      = 1;
   output[OUT_PLANCKBAVG].iModuleBit = POISE;
   fnWrite[OUT_PLANCKBAVG]           = &WritePlanckBAvg;
+
+  sprintf(output[OUT_PLANCKAAVG].cName, "PlanckAAvg");
+  sprintf(output[OUT_PLANCKAAVG].cDescr, "Annually averaged Planck A coeff");
+  sprintf(output[OUT_PLANCKAAVG].cNeg, "W/m^2/C");
+  output[OUT_PLANCKAAVG].bNeg       = 0;
+  output[OUT_PLANCKAAVG].iNum       = 1;
+  output[OUT_PLANCKAAVG].bGrid      = 1;
+  output[OUT_PLANCKAAVG].iModuleBit = POISE;
+  fnWrite[OUT_PLANCKAAVG]           = &WritePlanckAAvg;
 
   sprintf(output[OUT_AREAICECOV].cName, "AreaIceCov");
   sprintf(output[OUT_AREAICECOV].cDescr, "Fractional area ice covered");
@@ -7013,6 +7047,7 @@ void fvPoiseSeasonalInitialize(BODY *body, int iBody, int iYear) {
     // start of year, reset annual averages to zero
     body[iBody].daTempAvg[iLat]          = 0.0;
     body[iBody].daPlanckBAvg[iLat]       = 0.0;
+    body[iBody].daPlanckAAvg[iLat]       = 0.0;
     body[iBody].daAlbedoAvg[iLat]        = 0.0;
     body[iBody].daTempAvgL[iLat]         = 0.0;
     body[iBody].daTempAvgW[iLat]         = 0.0;
@@ -7131,6 +7166,8 @@ void fvPoiseAnnualAveragesByLatitude(BODY *body, int iBody, int iLat) {
         body[iBody].daTempLW[iLat] / body[iBody].iNStepInYear;
   body[iBody].daPlanckBAvg[iLat] +=
         body[iBody].daPlanckBSea[iLat] / body[iBody].iNStepInYear;
+  body[iBody].daPlanckAAvg[iLat] +=
+        body[iBody].daPlanckASea[iLat] / body[iBody].iNStepInYear;
   body[iBody].daTempAvgL[iLat] +=
         body[iBody].daTempLand[iLat] / body[iBody].iNStepInYear;
   body[iBody].daTempAvgW[iLat] +=
