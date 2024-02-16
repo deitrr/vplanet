@@ -20,6 +20,7 @@
 #define WK97 0
 #define HM16 1
 #define SMS09 2
+#define KG24 3
 
 /* Water albedo type */
 #define ALBFIXED 0

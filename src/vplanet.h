@@ -614,7 +614,7 @@ struct BODY {
                          Ro>ROSSBYCRIT */
   int bEvolveRG; /**< Whether or not to evolve radius of gyration? Defaults to 0
                   */
-  double dLuminosityInitial;           
+  double dLuminosityInitial;
   double dLuminosityAmplitude;
   double dLuminosityFrequency;
   double dLuminosityPhase;
@@ -703,7 +703,8 @@ struct BODY {
   double
         dSpinUpTol; /**< Tolerance for mean global temp change during spin up */
   double dSurfAlbedo;  /**< Base surface albedo used in ann model */
-  double dTGlobal;     /**< Global mean temperature at surface */
+  double dTGlobal;     /**< Global, annual mean temperature at surface */
+  double dTGlobalPrev;  /**< Global, annual mean temperature for previous orbit */
   double dTGlobalInit; /**< Initial estimate of global surface temperature */
   double dTGlobalTmp;  /**< Mean global surface temp */
   int iWriteLat; /**< Stores index of latitude to be written in write fxn */
