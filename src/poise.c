@@ -6208,6 +6208,7 @@ double fdOLRdTsms09(BODY *body, int iBody, int iLat, int bModel) {
 */
 double OLRKG24(BODY *body, int iBody, double T){
     double R, dPlanckA, dPCO2, m_epica, CO, offset, Tref, scaling_fac;
+    //
     // C0 from Bryne and Goldblatt 2013 doi:10.1002/2013GL058456
     // Scaling factor is Global mean temp at the 20th century - globel mean temp at the last glacial max / temp anomaly at the last glacial max
     // Tref = reference temperature of global mean temperature during the 20th century
