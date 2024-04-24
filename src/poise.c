@@ -6208,19 +6208,18 @@ double fdOLRdTsms09(BODY *body, int iBody, int iLat, int bModel) {
 */
 double OLRKG24(BODY *body, int iBody, double T){
     double R, dPlanckA, dPCO2, m_epica, CO, offset, Tref, scaling_fac;
-    // R = Radiative forcing at 180 ppmv
-    // C0 from Bryne and Goldblatt 2023
+    // C0 from Bryne and Goldblatt 2013 doi:10.1002/2013GL058456
     // Scaling factor is Global mean temp at the 20th century - globel mean temp at the last glacial max / temp anomaly at the last glacial max
     // Tref = reference temperature of global mean temperature during the 20th century
     //
 
-    CO = 278;
-    m_epica = 13;
-    offset = 266;
-    Tref = 13.9;
-    scaling_fac = 0.61;
+    CO = 278; //ppmv
+    m_epica = 13.1; //slope of unscaled linear fit of Epica CO2 values against temperature anomalies
+    offset = 266; 
+    Tref = 13.9; 
+    scaling_fac = 0.61; 
     dPCO2 = m_epica * scaling_fac * (T-Tref) + offset;
-    R = 5.32* log(dPCO2/CO) + 0.39*((log(dPCO2/CO))*(log(dPCO2/CO)));
+    R = 5.32* log(dPCO2/CO) + 0.39*((log(dPCO2/CO))*(log(dPCO2/CO))); // Radiative forcing of CO2 
     dPlanckA = body[iBody].dPlanckA - R;
   
     return dPlanckA;
