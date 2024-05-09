@@ -263,6 +263,7 @@ void fvAlbedoAnnual(BODY *, int);
 void fvAlbedoSeasonal(BODY *, int, int);
 void fvAnnualInsolation(BODY *, int);
 double fdOLRdTwk97(BODY *, int, int, int);
+double OLRKG24(BODY *, int, double);
 double fdOLRwk97(BODY *, int, int, int);
 double fdOLRdThm16(BODY *, int, int, int);
 double fdOLRhm16(BODY *, int, int, int);

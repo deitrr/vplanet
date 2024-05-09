@@ -1709,7 +1709,7 @@ void PropsAuxDistRot(BODY *body, EVOLVE *evolve, IO *io, UPDATE *update,
   if ((fabs(body[iBody].dXobl) > 1) || fabs(body[iBody].dYobl) > 1 ||
       fabs(body[iBody].dZobl) > 1) {
     if (io->iVerbose >= VERBERR) {
-      fprintf(stderr, "ERROR: %s's obliquity out of bounds at %.2e years.\n",
+      fprintf(stderr, "ERROR: %s's obliquity out of bounds at %.4e years.\n",
               body[iBody].cName, evolve->dTime / YEARSEC);
       fprintf(stderr, "\tXobl: %.6e\n", body[iBody].dXobl);
       fprintf(stderr, "\tYobl: %.6e\n", body[iBody].dYobl);

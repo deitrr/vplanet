@@ -1667,7 +1667,7 @@ int fniHaltHillStab(BODY *body, EVOLVE *evolve, HALT *halt, IO *io,
             printf(
                   "HALT: hill stability criterion failed for planets %d and %d",
                   iBody, jBody);
-            printf(" at %.2e years\n", evolve->dTime / YEARSEC);
+            printf(" at %.4e years\n", evolve->dTime / YEARSEC);
           }
           return 1;
         }
@@ -1693,7 +1693,7 @@ int fniHaltCloseEnc(BODY *body, EVOLVE *evolve, HALT *halt, IO *io,
             if (io->iVerbose >= VERBPROG) {
               printf("HALT: close encounter between planets %d and %d = ",
                      iBody, jBody);
-              printf(" at %.2e years\n", evolve->dTime / YEARSEC);
+              printf(" at %.4e years\n", evolve->dTime / YEARSEC);
             }
             return 1;
           }
@@ -1704,7 +1704,7 @@ int fniHaltCloseEnc(BODY *body, EVOLVE *evolve, HALT *halt, IO *io,
             if (io->iVerbose >= VERBPROG) {
               printf("HALT: close encounter between planets %d and %d = ",
                      iBody, jBody);
-              printf(" at %.2e years\n", evolve->dTime / YEARSEC);
+              printf(" at %.4e years\n", evolve->dTime / YEARSEC);
             }
             return 1;
           }

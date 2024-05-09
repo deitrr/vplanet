@@ -2458,7 +2458,7 @@ void InitializeClimateParams(BODY *body, int iBody, int iVerbose) {
     //correction to be made once dTGlobal has been calculated
     if (body[iBody].bCalcAB && body[iBody].iOLRModel == KG24) {
       for (iLat = 0; iLat < body[iBody].iNumLats; iLat++) {
-         body[iBody].daPlanckASea[iLat] = body[iBody].dPlanckA; //placeholder--replace with Karen's code
+         body[iBody].daPlanckASea[iLat] = OLRKG24(body, iBody, body[iBody].dTGlobal); //placeholder--replace with Karen's code
          //use dTGlobal for this calculation
          body[iBody].daPlanckAAvg[iLat] = body[iBody].daPlanckASea[iLat];
       }
@@ -3396,7 +3396,7 @@ void WriteDailyInsol(BODY *body, CONTROL *control, OUTPUT *output,
 
   } else {
 
-    sprintf(cOut, "SeasonalClimateFiles/%s.%s.DailyInsol.%.2e", system->cName,
+    sprintf(cOut, "SeasonalClimateFiles/%s.%s.DailyInsol.%.4e", system->cName,
             body[iBody].cName, dTime);
   }
 
@@ -3449,7 +3449,7 @@ void WritePlanckB(BODY *body, CONTROL *control, OUTPUT *output, SYSTEM *system,
 
   } else {
 
-    sprintf(cOut, "SeasonalClimateFiles/%s.%s.PlanckB.%.2e", system->cName,
+    sprintf(cOut, "SeasonalClimateFiles/%s.%s.PlanckB.%.4e", system->cName,
             body[iBody].cName, dTime);
   }
 
@@ -3503,7 +3503,7 @@ void WriteSeasonalTemp(BODY *body, CONTROL *control, OUTPUT *output,
 
   } else {
 
-    sprintf(cOut, "SeasonalClimateFiles/%s.%s.SeasonalTemp.%.2e", system->cName,
+    sprintf(cOut, "SeasonalClimateFiles/%s.%s.SeasonalTemp.%.4e", system->cName,
             body[iBody].cName, dTime);
   }
 
@@ -3572,13 +3572,13 @@ void WriteSeasonalFluxes(BODY *body, CONTROL *control, OUTPUT *output,
 
   } else {
 
-    sprintf(cOutM, "SeasonalClimateFiles/%s.%s.SeasonalFMerid.%.2e",
+    sprintf(cOutM, "SeasonalClimateFiles/%s.%s.SeasonalFMerid.%.4e",
             system->cName, body[iBody].cName, dTime);
-    sprintf(cOutI, "SeasonalClimateFiles/%s.%s.SeasonalFIn.%.2e", system->cName,
+    sprintf(cOutI, "SeasonalClimateFiles/%s.%s.SeasonalFIn.%.4e", system->cName,
             body[iBody].cName, dTime);
-    sprintf(cOutO, "SeasonalClimateFiles/%s.%s.SeasonalFOut.%.2e",
+    sprintf(cOutO, "SeasonalClimateFiles/%s.%s.SeasonalFOut.%.4e",
             system->cName, body[iBody].cName, dTime);
-    sprintf(cOutD, "SeasonalClimateFiles/%s.%s.SeasonalDivF.%.2e",
+    sprintf(cOutD, "SeasonalClimateFiles/%s.%s.SeasonalDivF.%.4e",
             system->cName, body[iBody].cName, dTime);
   }
 
@@ -3656,7 +3656,7 @@ void WriteSeasonalIceBalance(BODY *body, CONTROL *control, OUTPUT *output,
 
   } else {
 
-    sprintf(cOut, "SeasonalClimateFiles/%s.%s.SeasonalIceBalance.%.2e",
+    sprintf(cOut, "SeasonalClimateFiles/%s.%s.SeasonalIceBalance.%.4e",
             system->cName, body[iBody].cName, dTime);
   }
 
@@ -6204,6 +6204,29 @@ double fdOLRdTsms09(BODY *body, int iBody, int iLat, int bModel) {
 }
 
 /**
+ OLR function for Karen's directed studies project
+*/
+double OLRKG24(BODY *body, int iBody, double T){
+    double R, dPlanckA, dPCO2, m_epica, CO, offset, Tref, scaling_fac;
+    //
+    // C0 from Bryne and Goldblatt 2013 doi:10.1002/2013GL058456
+    // Scaling factor is Global mean temp at the 20th century - globel mean temp at the last glacial max / temp anomaly at the last glacial max
+    // Tref = reference temperature of global mean temperature during the 20th century
+    //
+
+    CO = 278; //ppmv
+    m_epica = 13.1; //slope of unscaled linear fit of Epica CO2 values against temperature anomalies
+    offset = 266; 
+    Tref = 13.9; 
+    scaling_fac = 0.61; 
+    dPCO2 = m_epica * scaling_fac * (T-Tref) + offset;
+    R = 5.32* log(dPCO2/CO) + 0.39*((log(dPCO2/CO))*(log(dPCO2/CO))); // Radiative forcing of CO2 
+    dPlanckA = body[iBody].dPlanckA - R;
+  
+    return dPlanckA;
+}
+
+/**
 Calculates the OLR from the Williams & Kasting 1997 formulae
 
 @param body Struct containing all body information
@@ -7097,7 +7120,7 @@ void fvCalcPlanckAB(BODY *body, int iBody, int iLat) {
             body[iBody].daPlanckBSea[iLat] * (body[iBody].daTempLW[iLat]);
     } else if (body[iBody].iOLRModel == KG24) {
       body[iBody].daPlanckBSea[iLat] = body[iBody].dPlanckB;
-      body[iBody].daPlanckASea[iLat] = body[iBody].dPlanckA;  //placeholder! replace with Karen's code later
+      body[iBody].daPlanckASea[iLat] = OLRKG24(body, iBody, body[iBody].dTGlobalPrev);  //placeholder! replace with Karen's code later
       //use dTGlobalPrev for this calc, not dTGlobal
     } else {
       /* Calculate A and B from spiegel+ 2009 model */
