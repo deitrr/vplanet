@@ -1783,6 +1783,19 @@ void VerifyOLR(BODY *body, OPTIONS *options, char cFile[], int iBody,
       // LCOV_EXCL_STOP
     }
   }
+
+  if (body[iBody].bCalcAB && body[iBody].iOLRModel == KG24) {
+    if (body[iBody].iClimateModel == ANN) {
+      // LCOV_EXCL_START
+      if (iVerbose >= VERBERR) {
+        fprintf(stderr, "ERROR: Cannot set bCalcAB = 1 and iOLRModel = KG24 \
+                in File:%s, when annual model is used\n",
+                cFile);
+      }
+      exit(EXIT_INPUT);
+      // LCOV_EXCL_STOP
+    }
+  }
 }
 
 void VerifyOrbitOblData(BODY *body, CONTROL *control, OPTIONS *options,
@@ -2461,9 +2474,8 @@ void InitializeClimateParams(BODY *body, int iBody, int iVerbose) {
     // correction to be made once dTGlobal has been calculated
     if (body[iBody].bCalcAB && body[iBody].iOLRModel == KG24) {
       for (iLat = 0; iLat < body[iBody].iNumLats; iLat++) {
-        body[iBody].daPlanckASea[iLat] = OLRKG24(
-              body, iBody,
-              body[iBody].dTGlobal); // placeholder--replace with Karen's code
+        body[iBody].daPlanckASea[iLat] =
+              OLRKG24(body, iBody, body[iBody].dTGlobal);
         // use dTGlobal for this calculation
         body[iBody].daPlanckAAvg[iLat] = body[iBody].daPlanckASea[iLat];
       }
@@ -5890,8 +5902,7 @@ void PoiseAnnual(BODY *body, int iBody) {
         } else if (body[iBody].iOLRModel == KG24) {
           body[iBody].daPlanckBAnn[iLat] = body[iBody].dPlanckB;
           body[iBody].daPlanckAAnn[iLat] =
-                body[iBody]
-                      .dPlanckA; // placeholder! replace with Karen's code later
+                body[iBody].dPlanckA; // not enabled for Annual model yet
           // use dTGlobal for this calculation
         } else {
           body[iBody].daPlanckBAnn[iLat] = fdOLRdTsms09(body, iBody, iLat, ANN);
@@ -6007,8 +6018,7 @@ void PoiseAnnual(BODY *body, int iBody) {
           } else if (body[iBody].iOLRModel == KG24) {
             body[iBody].daPlanckBAnn[iLat] = body[iBody].dPlanckB;
             body[iBody].daPlanckAAnn[iLat] =
-                  body[iBody].dPlanckA; // placeholder! replace with Karen's
-                                        // code later
+                  body[iBody].dPlanckA; // not enabled for annual model yet
 
           } else {
             body[iBody].daPlanckBAnn[iLat] =
@@ -6213,7 +6223,7 @@ double fdOLRdTsms09(BODY *body, int iBody, int iLat, int bModel) {
 }
 
 /**
- OLR function for Karen's directed studies project
+ OLR function for Karen Garcia Perdomo's directed studies project
 */
 double OLRKG24(BODY *body, int iBody, double T) {
   double R, dPlanckA, dPCO2, m_epica, CO, offset, Tref, scaling_fac;
@@ -7134,9 +7144,8 @@ void fvCalcPlanckAB(BODY *body, int iBody, int iLat) {
             body[iBody].daPlanckBSea[iLat] * (body[iBody].daTempLW[iLat]);
     } else if (body[iBody].iOLRModel == KG24) {
       body[iBody].daPlanckBSea[iLat] = body[iBody].dPlanckB;
-      body[iBody].daPlanckASea[iLat] = OLRKG24(
-            body, iBody, body[iBody].dTGlobalPrev); // placeholder! replace with
-                                                    // Karen's code later
+      body[iBody].daPlanckASea[iLat] =
+            OLRKG24(body, iBody, body[iBody].dTGlobalPrev);
       // use dTGlobalPrev for this calc, not dTGlobal
     } else {
       /* Calculate A and B from spiegel+ 2009 model */
