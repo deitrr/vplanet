@@ -6317,7 +6317,7 @@ void AlbedoTOAhm16(BODY *body, double zenith, int iBody, int iLat) {
   if (body[iBody].daTempWater[iLat] <= body[iBody].dFrzTSeaIce) {
     albtmp = body[iBody].dIceAlbedo;
   } else {
-    albtmp = AlbedoTaylor(zenith);
+    albtmp = body[iBody].dAlbedoWater;
   }
   body[iBody].daAlbSurfWater[iLat] = albtmp;
 
@@ -6393,8 +6393,7 @@ void AlbedoTOAwk97(BODY *body, double zenith, int iBody, int iLat) {
     albtmp = body[iBody].dIceAlbedo;
 
   } else {
-
-    albtmp = AlbedoTaylor(zenith);
+    albtmp = body[iBody].dAlbedoWater;
   }
   body[iBody].daAlbSurfWater[iLat] = albtmp;
 
