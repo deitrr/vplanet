@@ -1765,7 +1765,7 @@ void VerifyOLR(BODY *body, OPTIONS *options, char cFile[], int iBody,
       if (iVerbose >= VERBERR) {
         fprintf(stderr, "ERROR: Cannot set %s or %s when setting bCalcAB = 1 \
                 in File:%s, except when iOLRModel = KG24\n",
-                options[OPT_PLANCKA].cName, options[OPT_PLANCKB].cName,  cFile);
+                options[OPT_PLANCKA].cName, options[OPT_PLANCKB].cName, cFile);
       }
       exit(EXIT_INPUT);
       // LCOV_EXCL_STOP
@@ -1826,10 +1826,12 @@ void VerifyOrbitOblData(BODY *body, CONTROL *control, OPTIONS *options,
 
       iLine = 0;
       while (feof(fileorb) == 0) {
-        if (fscanf(fileorb, "%lf %lf %lf %lf %lf %lf %lf", &dttmp, &datmp, &detmp,
-              &daptmp, &dlatmp, &dobltmp, &dprecatmp) != 7) {
-                fprintf(stderr,"ERROR: Incorrect number of columns in orbit-obliquity file.");
-                exit(EXIT_INPUT);
+        if (fscanf(fileorb, "%lf %lf %lf %lf %lf %lf %lf", &dttmp, &datmp,
+                   &detmp, &daptmp, &dlatmp, &dobltmp, &dprecatmp) != 7) {
+          fprintf(
+                stderr,
+                "ERROR: Incorrect number of columns in orbit-obliquity file.");
+          exit(EXIT_INPUT);
         }
 
         body[iBody].daTimeSeries[iLine] =
@@ -2079,7 +2081,7 @@ void InitializeClimateParams(BODY *body, int iBody, int iVerbose) {
           body[iBody].daPlanckAAnn[iLat] =
                 fdOLRwk97(body, iBody, iLat, ANN) -
                 body[iBody].daPlanckBAnn[iLat] * (body[iBody].daTempAnn[iLat]);
-        } else if (body[iBody].iOLRModel == HM16){
+        } else if (body[iBody].iOLRModel == HM16) {
           body[iBody].daPlanckBAnn[iLat] = fdOLRdThm16(body, iBody, iLat, ANN);
           body[iBody].daPlanckAAnn[iLat] =
                 fdOLRhm16(body, iBody, iLat, ANN) -
@@ -2088,8 +2090,7 @@ void InitializeClimateParams(BODY *body, int iBody, int iVerbose) {
           body[iBody].daPlanckBAnn[iLat] = body[iBody].dPlanckB;
           body[iBody].daPlanckAAnn[iLat] = body[iBody].dPlanckA;
         } else {
-          body[iBody].daPlanckBAnn[iLat] =
-                fdOLRdTsms09(body, iBody, iLat, SEA);
+          body[iBody].daPlanckBAnn[iLat] = fdOLRdTsms09(body, iBody, iLat, SEA);
           body[iBody].daPlanckAAnn[iLat] =
                 fdOLRsms09(body, iBody, iLat, SEA) -
                 body[iBody].daPlanckBAnn[iLat] * (body[iBody].daTempLW[iLat]);
@@ -2401,7 +2402,9 @@ void InitializeClimateParams(BODY *body, int iBody, int iVerbose) {
           } else if (body[iBody].iOLRModel == KG24) {
             body[iBody].daPlanckBSea[iLat] = body[iBody].dPlanckB;
             body[iBody].daPlanckBAvg[iLat] = body[iBody].daPlanckBSea[iLat];
-            body[iBody].daPlanckASea[iLat] = body[iBody].dPlanckA; //leave this! we don't have dTGlobal yet
+            body[iBody].daPlanckASea[iLat] =
+                  body[iBody]
+                        .dPlanckA; // leave this! we don't have dTGlobal yet
           } else {
             /* Calculate A and B from Spiegel+ 2009 result */
             body[iBody].daPlanckBSea[iLat] =
@@ -2455,12 +2458,14 @@ void InitializeClimateParams(BODY *body, int iBody, int iVerbose) {
       }
     }
 
-    //correction to be made once dTGlobal has been calculated
+    // correction to be made once dTGlobal has been calculated
     if (body[iBody].bCalcAB && body[iBody].iOLRModel == KG24) {
       for (iLat = 0; iLat < body[iBody].iNumLats; iLat++) {
-         body[iBody].daPlanckASea[iLat] = OLRKG24(body, iBody, body[iBody].dTGlobal); //placeholder--replace with Karen's code
-         //use dTGlobal for this calculation
-         body[iBody].daPlanckAAvg[iLat] = body[iBody].daPlanckASea[iLat];
+        body[iBody].daPlanckASea[iLat] = OLRKG24(
+              body, iBody,
+              body[iBody].dTGlobal); // placeholder--replace with Karen's code
+        // use dTGlobal for this calculation
+        body[iBody].daPlanckAAvg[iLat] = body[iBody].daPlanckASea[iLat];
       }
     }
 
@@ -5884,8 +5889,10 @@ void PoiseAnnual(BODY *body, int iBody) {
                 body[iBody].daPlanckBAnn[iLat] * (body[iBody].daTempAnn[iLat]);
         } else if (body[iBody].iOLRModel == KG24) {
           body[iBody].daPlanckBAnn[iLat] = body[iBody].dPlanckB;
-          body[iBody].daPlanckAAnn[iLat] = body[iBody].dPlanckA;  //placeholder! replace with Karen's code later
-          //use dTGlobal for this calculation
+          body[iBody].daPlanckAAnn[iLat] =
+                body[iBody]
+                      .dPlanckA; // placeholder! replace with Karen's code later
+          // use dTGlobal for this calculation
         } else {
           body[iBody].daPlanckBAnn[iLat] = fdOLRdTsms09(body, iBody, iLat, ANN);
           body[iBody].daPlanckAAnn[iLat] =
@@ -5999,7 +6006,9 @@ void PoiseAnnual(BODY *body, int iBody) {
 
           } else if (body[iBody].iOLRModel == KG24) {
             body[iBody].daPlanckBAnn[iLat] = body[iBody].dPlanckB;
-            body[iBody].daPlanckAAnn[iLat] = body[iBody].dPlanckA;  //placeholder! replace with Karen's code later
+            body[iBody].daPlanckAAnn[iLat] =
+                  body[iBody].dPlanckA; // placeholder! replace with Karen's
+                                        // code later
 
           } else {
             body[iBody].daPlanckBAnn[iLat] =
@@ -6206,24 +6215,28 @@ double fdOLRdTsms09(BODY *body, int iBody, int iLat, int bModel) {
 /**
  OLR function for Karen's directed studies project
 */
-double OLRKG24(BODY *body, int iBody, double T){
-    double R, dPlanckA, dPCO2, m_epica, CO, offset, Tref, scaling_fac;
-    //
-    // C0 from Bryne and Goldblatt 2013 doi:10.1002/2013GL058456
-    // Scaling factor is Global mean temp at the 20th century - globel mean temp at the last glacial max / temp anomaly at the last glacial max
-    // Tref = reference temperature of global mean temperature during the 20th century
-    //
+double OLRKG24(BODY *body, int iBody, double T) {
+  double R, dPlanckA, dPCO2, m_epica, CO, offset, Tref, scaling_fac;
+  //
+  // C0 from Bryne and Goldblatt 2013 doi:10.1002/2013GL058456
+  // Scaling factor is Global mean temp at the 20th century - globel mean temp
+  // at the last glacial max / temp anomaly at the last glacial max Tref =
+  // reference temperature of global mean temperature during the 20th century
+  //
 
-    CO = 278; //ppmv
-    m_epica = 13.1; //slope of unscaled linear fit of Epica CO2 values against temperature anomalies
-    offset = 266; 
-    Tref = 13.9; 
-    scaling_fac = 0.61; 
-    dPCO2 = m_epica * scaling_fac * (T-Tref) + offset;
-    R = 5.32* log(dPCO2/CO) + 0.39*((log(dPCO2/CO))*(log(dPCO2/CO))); // Radiative forcing of CO2 
-    dPlanckA = body[iBody].dPlanckA - R;
-  
-    return dPlanckA;
+  CO      = 278;  // ppmv
+  m_epica = 13.1; // slope of unscaled linear fit of Epica CO2 values against
+                  // temperature anomalies
+  offset      = 266;
+  Tref        = 13.9;
+  scaling_fac = 0.61;
+  dPCO2       = m_epica * scaling_fac * (T - Tref) + offset;
+  R           = 5.32 * log(dPCO2 / CO) +
+      0.39 *
+            ((log(dPCO2 / CO)) * (log(dPCO2 / CO))); // Radiative forcing of CO2
+  dPlanckA = body[iBody].dPlanckA - R;
+
+  return dPlanckA;
 }
 
 /**
@@ -6517,7 +6530,7 @@ void AlbedoTOAhm16(BODY *body, double zenith, int iBody, int iLat) {
   if (body[iBody].daTempWater[iLat] <= body[iBody].dFrzTSeaIce) {
     albtmp = body[iBody].dIceAlbedo;
   } else {
-    albtmp = AlbedoTaylor(zenith);
+    albtmp = body[iBody].dAlbedoWater;
   }
 
   if (body[iBody].daTempWater[iLat] <= (-23.15)) {
@@ -6592,7 +6605,7 @@ void AlbedoTOAwk97(BODY *body, double zenith, int iBody, int iLat) {
 
   } else {
 
-    albtmp = AlbedoTaylor(zenith);
+    albtmp = body[iBody].dAlbedoWater;
   }
 
   if (body[iBody].daTempWater[iLat] >= -83.15 &&
@@ -7061,7 +7074,8 @@ void EnergyResiduals(BODY *body, int iBody, int iNday) {
 }
 
 void fvPoiseSeasonalInitialize(BODY *body, int iBody, int iYear) {
-  body[iBody].dTGlobalPrev   = body[iBody].dTGlobal; //store Tglobal for previous orbit
+  body[iBody].dTGlobalPrev =
+        body[iBody].dTGlobal; // store Tglobal for previous orbit
   body[iBody].dTGlobal       = 0.0;
   body[iBody].dFluxInGlobal  = 0.0;
   body[iBody].dFluxOutGlobal = 0.0;
@@ -7120,8 +7134,10 @@ void fvCalcPlanckAB(BODY *body, int iBody, int iLat) {
             body[iBody].daPlanckBSea[iLat] * (body[iBody].daTempLW[iLat]);
     } else if (body[iBody].iOLRModel == KG24) {
       body[iBody].daPlanckBSea[iLat] = body[iBody].dPlanckB;
-      body[iBody].daPlanckASea[iLat] = OLRKG24(body, iBody, body[iBody].dTGlobalPrev);  //placeholder! replace with Karen's code later
-      //use dTGlobalPrev for this calc, not dTGlobal
+      body[iBody].daPlanckASea[iLat] = OLRKG24(
+            body, iBody, body[iBody].dTGlobalPrev); // placeholder! replace with
+                                                    // Karen's code later
+      // use dTGlobalPrev for this calc, not dTGlobal
     } else {
       /* Calculate A and B from spiegel+ 2009 model */
       body[iBody].daPlanckBSea[iLat] = fdOLRdTsms09(body, iBody, iLat, SEA);
