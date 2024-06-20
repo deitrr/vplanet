@@ -420,7 +420,7 @@ void VerifyOrbitData(BODY *body, CONTROL *control, OPTIONS *options,
       }
       // Check file has exactly 7 columns
       if (fgets(cLine, LINE, fileorb) == NULL) {
-        fprintf(stderr,"ERROR: Unable to read line from orbit data file.");
+        fprintf(stderr, "ERROR: Unable to read line from orbit data file.");
         exit(EXIT_INPUT);
       }
       GetWords(cLine, cFoo, &iNumColsFound, &bFoo);
@@ -459,10 +459,10 @@ void VerifyOrbitData(BODY *body, CONTROL *control, OPTIONS *options,
 
       iLine = 0;
       while (feof(fileorb) == 0) {
-        if (fscanf(fileorb, "%lf %lf %lf %lf %lf %lf %lf\n", &dttmp, &datmp, &detmp,
-               &ditmp, &daptmp, &dlatmp, &dmatmp) != 7) {
-                  fprintf(stderr,"ERROR: Incorrect number of columns in orbit file.");
-                  exit(EXIT_INPUT);
+        if (fscanf(fileorb, "%lf %lf %lf %lf %lf %lf %lf\n", &dttmp, &datmp,
+                   &detmp, &ditmp, &daptmp, &dlatmp, &dmatmp) != 7) {
+          fprintf(stderr, "ERROR: Incorrect number of columns in orbit file.");
+          exit(EXIT_INPUT);
         }
         body[iBody].daTimeSeries[iLine] =
               dttmp * fdUnitsTime(control->Units[iBody + 1].iTime);
@@ -907,12 +907,20 @@ void FinalizeUpdateZoblDistRot(BODY *body, UPDATE *update, int *iEqn, int iVar,
                                int iBody, int iFoo) {
   int iPert;
 
-  update[iBody].padDZoblDtDistRot =
-        malloc((body[iBody].iGravPerts) * sizeof(double *));
-  update[iBody].iaZoblDistRot = malloc((body[iBody].iGravPerts) * sizeof(int));
-  for (iPert = 0; iPert < body[iBody].iGravPerts; iPert++) {
+  if (body[iBody].bReadOrbitData) {
+    update[iBody].padDZoblDtDistRot     = malloc(1 * sizeof(double *));
+    update[iBody].iaZoblDistRot         = malloc(1 * sizeof(int));
     update[iBody].iaModule[iVar][*iEqn] = DISTROT;
-    update[iBody].iaZoblDistRot[iPert]  = (*iEqn)++;
+    update[iBody].iaZoblDistRot[0]      = (*iEqn)++;
+  } else {
+    update[iBody].padDZoblDtDistRot =
+          malloc((body[iBody].iGravPerts) * sizeof(double *));
+    update[iBody].iaZoblDistRot =
+          malloc((body[iBody].iGravPerts) * sizeof(int));
+    for (iPert = 0; iPert < body[iBody].iGravPerts; iPert++) {
+      update[iBody].iaModule[iVar][*iEqn] = DISTROT;
+      update[iBody].iaZoblDistRot[iPert]  = (*iEqn)++;
+    }
   }
 }
 
@@ -1020,7 +1028,11 @@ void WriteOblTimeDistRot(BODY *body, CONTROL *control, OUTPUT *output,
               dObldz * (*(update[iBody].padDZoblDtDistRot[iPert]));
   }
 
+  if (dDeriv == 0) {
+    *dTmp = -1;
+  } else {
   *dTmp = fabs(PI / dDeriv);
+  }
 
   if (output->bDoNeg[iBody]) {
     *dTmp *= output->dNeg;
@@ -1057,7 +1069,11 @@ void WritePrecATimeDistRot(BODY *body, CONTROL *control, OUTPUT *output,
               dpAdy * (*(update[iBody].padDYoblDtDistRot[iPert]));
   }
 
-  *dTmp = fabs(2 * PI / dDeriv);
+  if (dDeriv == 0) {
+    *dTmp = -1;
+  } else {
+    *dTmp = fabs(2 * PI / dDeriv);
+  }
 
   if (output->bDoNeg[iBody]) {
     *dTmp *= output->dNeg;
@@ -1188,7 +1204,11 @@ void WriteXoblTimeDistRot(BODY *body, CONTROL *control, OUTPUT *output,
     dDeriv += *(update[iBody].padDXoblDtDistRot[iPert]);
   }
 
-  *dTmp = fabs(1. / dDeriv);
+  if (dDeriv == 0) {
+    *dTmp = -1;
+  } else {
+    *dTmp = fabs(1. / dDeriv);
+  }
 
   if (output->bDoNeg[iBody]) {
     *dTmp *= output->dNeg;
@@ -1211,7 +1231,11 @@ void WriteYoblTimeDistRot(BODY *body, CONTROL *control, OUTPUT *output,
     dDeriv += *(update[iBody].padDYoblDtDistRot[iPert]);
   }
 
-  *dTmp = fabs(1. / dDeriv);
+  if (dDeriv == 0) {
+    *dTmp = -1;
+  } else {
+    *dTmp = fabs(1. / dDeriv);
+  }
 
   if (output->bDoNeg[iBody]) {
     *dTmp *= output->dNeg;
@@ -1234,8 +1258,12 @@ void WriteZoblTimeDistRot(BODY *body, CONTROL *control, OUTPUT *output,
     dDeriv += *(update[iBody].padDZoblDtDistRot[iPert]);
   }
 
-  *dTmp = fabs(1. / dDeriv);
-
+  if (dDeriv == 0) {
+    *dTmp = -1;
+  } else {
+    *dTmp = fabs(1. / dDeriv);
+  }
+  
   if (output->bDoNeg[iBody]) {
     *dTmp *= output->dNeg;
     strcpy(cUnit, output->cNeg);

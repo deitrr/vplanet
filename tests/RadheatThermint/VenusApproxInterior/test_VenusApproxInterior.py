@@ -164,6 +164,7 @@ from benchmark import Benchmark, benchmark
         "log.initial.venus.EruptEff": {"value": 1.000000e-09},
         "log.initial.venus.TrefLind": {"value": 5451.600000},
         "log.initial.venus.DynViscUMan": {"value": 3.954269e10, "unit": u.Joule},
+        "log.initial.venus.TsolUMan": {"value": 1450.011536},
         "log.final.system.Age": {"value": 1.420092e17, "unit": u.sec, "rtol": 1e-4},
         "log.final.system.Time": {"value": 1.420092e17, "unit": u.sec, "rtol": 1e-4},
         "log.final.system.TotAngMom": {
@@ -482,6 +483,7 @@ from benchmark import Benchmark, benchmark
             "unit": u.Joule,
             "rtol": 1e-4,
         },
+        "log.final.venus.TsolUMan": {"value": 1454.062000, "rtol": 1e-4},
     }
 )
 class Test_VenusApproxInterior(Benchmark):

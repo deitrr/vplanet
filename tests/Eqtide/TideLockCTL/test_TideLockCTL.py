@@ -281,6 +281,7 @@ from benchmark import Benchmark, benchmark
             "unit": u.Joule,
         },
         "log.final.system.KinEnergy": {"value": 1.7636110755774171e33, "unit": u.Joule},
+        "log.final.system.DeltaTime": {"value": 4.5082285714285713e12, "unit": u.sec},
         "log.final.gl581.Mass": {"value": 6.1640895999999998e29, "unit": u.kg},
         "log.final.gl581.Obliquity": {"value": 0.0000000000000000, "unit": u.rad},
         "log.final.gl581.PrecA": {"value": 0.0000000000000000, "unit": u.rad},
@@ -457,8 +458,8 @@ from benchmark import Benchmark, benchmark
             "unit": 1 / u.sec**2,
         },
         "log.final.d.DOrbPerDtEqtide": {"value": -1.1834286683328942e-15},
-        "log.final.d.EccTimeEqtide": {"value": 2.4770591472380711e21, "unit": u.sec},
-        "log.final.d.SemiTimeEqtide": {"value": 7.3360074655503693e21, "unit": u.sec},
+        "log.final.d.EccTimeEqtide": {"value": 0.0000000000000000, "unit": u.sec},
+        "log.final.d.SemiTimeEqtide": {"value": 0.0000000000000000, "unit": u.sec},
         "log.final.d.DHEccDtEqtide": {"value": -0.0000000000000000, "unit": 1 / u.sec},
         "log.final.d.DKEccDtEqtide": {
             "value": -1.5340864202016184e-22,

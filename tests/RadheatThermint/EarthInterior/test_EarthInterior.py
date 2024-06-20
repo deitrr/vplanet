@@ -164,6 +164,7 @@ from benchmark import Benchmark, benchmark
         "log.initial.earth.EruptEff": {"value": 0.100000},
         "log.initial.earth.TrefLind": {"value": 5451.600000},
         "log.initial.earth.DynViscUMan": {"value": 2.256360e09, "unit": u.Joule},
+        "log.initial.earth.TsolUMan": {"value": 1449.508474},
         "log.final.system.Age": {"value": 1.420092e17, "unit": u.sec, "rtol": 1e-4},
         "log.final.system.Time": {"value": 1.420092e17, "unit": u.sec, "rtol": 1e-4},
         "log.final.system.TotAngMom": {
@@ -478,6 +479,7 @@ from benchmark import Benchmark, benchmark
             "unit": u.Joule,
             "rtol": 1e-4,
         },
+        "log.final.earth.TsolUMan": {"value": 1564.217513, "rtol": 1e-4},
     }
 )
 class Test_EarthInterior(Benchmark):

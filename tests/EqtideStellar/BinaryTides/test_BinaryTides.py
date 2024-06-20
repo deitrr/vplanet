@@ -228,7 +228,7 @@ from benchmark import Benchmark, benchmark
         },
         "log.initial.secondary.EqRotPerCont": {"value": 2.328841e05, "unit": u.sec},
         "log.initial.secondary.EqRotPer": {"value": 2.880000e05, "unit": u.sec},
-        "log.initial.secondary.EqTidePower": {"value": 0.000000, "unit": 1 / u.sec},
+        "log.initial.secondary.EqTidePower": {"value": 1.897082e26, "unit": 1 / u.sec},
         "log.initial.secondary.GammaRot": {"value": -1.000000, "unit": u.sec},
         "log.initial.secondary.GammaOrb": {"value": -1.000000, "unit": u.sec},
         "log.initial.secondary.OceanK2": {"value": 0.010000},
@@ -676,12 +676,12 @@ from benchmark import Benchmark, benchmark
         },
         "log.final.secondary.DOrbPerDtEqtide": {"value": -2.900948e-10, "rtol": 1e-4},
         "log.final.secondary.EccTimeEqtide": {
-            "value": 6.613161e12,
+            "value": 0.000000,
             "unit": u.sec,
             "rtol": 1e-4,
         },
         "log.final.secondary.SemiTimeEqtide": {
-            "value": 1.598295e15,
+            "value": 0.000000,
             "unit": u.sec,
             "rtol": 1e-4,
         },
@@ -754,7 +754,7 @@ from benchmark import Benchmark, benchmark
             "rtol": 1e-4,
         },
         "log.final.secondary.EqTidePower": {
-            "value": 0.000000,
+            "value": 3.005173e24,
             "unit": 1 / u.sec,
             "rtol": 1e-4,
         },

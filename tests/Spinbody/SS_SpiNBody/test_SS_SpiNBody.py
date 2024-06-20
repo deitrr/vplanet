@@ -328,6 +328,7 @@ from benchmark import Benchmark, benchmark
             "unit": u.Joule,
         },
         "log.final.system.KinEnergy": {"value": 5.3472690917973792e38, "unit": u.Joule},
+        "log.final.system.DeltaTime": {"value": 5.9826503140891415e04, "unit": u.sec},
         "log.final.Star.Mass": {"value": 1.9884154399559999e30, "unit": u.kg},
         "log.final.Star.Radius": {"value": 6.3781000000000000e09, "unit": u.m},
         "log.final.Star.RadGyra": {"value": 0.5000000000000000},

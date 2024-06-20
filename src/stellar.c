@@ -29,6 +29,7 @@ void BodyCopyStellar(BODY *dest, BODY *src, int foo, int iNumBodies,
   dest[iBody].dLXUV                = src[iBody].dLXUV;
   dest[iBody].bRossbyCut           = src[iBody].bRossbyCut;
   dest[iBody].bEvolveRG            = src[iBody].bEvolveRG;
+  dest[iBody].dLuminosityInitial = src[iBody].dLuminosityInitial;
   dest[iBody].dLuminosityAmplitude = src[iBody].dLuminosityAmplitude;
   dest[iBody].dLuminosityFrequency = src[iBody].dLuminosityFrequency;
   dest[iBody].dLuminosityPhase     = src[iBody].dLuminosityPhase;
@@ -463,7 +464,7 @@ void InitializeOptionsStellar(OPTIONS *options, fnReadOption fnRead[]) {
           "gigayears.");
 
   sprintf(options[OPT_STELLARMODEL].cName, "sStellarModel");
-  sprintf(options[OPT_STELLARMODEL].cDescr, "Luminosity evolution model");
+  sprintf(options[OPT_STELLARMODEL].cDescr, "Stellar evolution model");
   sprintf(options[OPT_STELLARMODEL].cDefault, "BARAFFE");
   sprintf(options[OPT_STELLARMODEL].cValues, "BARAFFE PROXIMA SINEWAVE NONE");
   options[OPT_STELLARMODEL].iType      = 3;

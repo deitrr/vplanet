@@ -1191,7 +1191,9 @@ void InitializeOptionsAtmEsc(OPTIONS *options, fnReadOption fnRead[]) {
   sprintf(options[OPT_FXUV].cDimension, "energyflux");
   options[OPT_FXUV].iType      = 2;
   options[OPT_FXUV].bMultiFile = 1;
-  fnRead[OPT_FXUV]             = &ReadFXUV;
+  options[OPT_FXUV].dNeg       = 1;
+  sprintf(options[OPT_FXUV].cNeg, "W/m^2");
+  fnRead[OPT_FXUV] = &ReadFXUV;
 
   sprintf(options[OPT_MINKTIDE].cName, "dMinKTide");
   sprintf(options[OPT_MINKTIDE].cDescr,
@@ -1444,39 +1446,37 @@ double fdAtmEscXi(BODY *body, int iBody) {
   return dXi;
 }
 
-double fdKTide(BODY *body, IO *io, int iBody) {
+double fdKTide(BODY *body, IO *io, int iNumBodies, int iBody) {
   double dKTide;
 
   // For stars and circumbinary planets, assume no Ktide enhancement
   if (body[iBody].bBinary && body[iBody].iBodyType == 0) {
     dKTide = 1.0;
   } else {
-    if (body[iBody].dAtmEscXi > 1) {
-      dKTide = (1 - 3 / (2 * body[iBody].dAtmEscXi) +
-                1 / (2 * pow(body[iBody].dAtmEscXi, 3)));
-      /*
-      fprintf(stderr,"%.5e: ",evolve->dTime/YEARSEC);
-      fprintf(stderr,"%.5e ",xi);
-      fprintf(stderr,"%.5e\n",body[iBody].dKTide);
-      */
-      if (dKTide < body[iBody].dMinKTide) {
-        dKTide = body[iBody].dMinKTide;
+    if (iNumBodies > 1) {
+      if (body[iBody].dAtmEscXi > 1) {
+        dKTide = (1 - 3 / (2 * body[iBody].dAtmEscXi) +
+                  1 / (2 * pow(body[iBody].dAtmEscXi, 3)));
+        if (dKTide < body[iBody].dMinKTide) {
+          dKTide = body[iBody].dMinKTide;
+        }
+      } else {
+        if (!io->baRocheMessage[iBody] && io->iVerbose >= VERBINPUT &&
+            (!body[iBody].bUseBondiLimited && !body[iBody].bAtmEscAuto)) {
+          fprintf(stderr,
+                  "WARNING: Roche lobe radius is larger than %s's XUV radius. "
+                  "Evolution may not be accurate.\n",
+                  body[iBody].cName);
+          fprintf(stderr, "Consider setting bUseBondiLimited = 1 or bAtmEscAuto "
+                          "= 1 to limit envelope mass loss.\n");
+          io->baRocheMessage[iBody] = 1;
+        }
+        // Fix dKTide to prevent infs when in Roche Lobe overflow
+        dKTide = 1.0;
       }
     } else {
-      if (!io->baRocheMessage[iBody] && io->iVerbose >= VERBINPUT &&
-          (!body[iBody].bUseBondiLimited && !body[iBody].bAtmEscAuto)) {
-        fprintf(stderr,
-                "WARNING: Roche lobe radius is larger than %s's XUV radius. "
-                "Evolution may not be accurate.\n",
-                body[iBody].cName);
-        fprintf(stderr, "Consider setting bUseBondiLimited = 1 or bAtmEscAuto "
-                        "= 1 to limit envelope mass loss.\n");
-        io->baRocheMessage[iBody] = 1;
-      }
-      // Fix dKTide to prevent infs when in Roche Lobe overflow
       dKTide = 1.0;
     }
-    // body[iBody].dKTide = 1.0;
   }
 
   return dKTide;
@@ -1692,7 +1692,7 @@ void fnForceBehaviorAtmEsc(BODY *body, MODULE *module, EVOLVE *evolve, IO *io,
   }
 }
 
-void AuxPropsLehmer17(BODY *body, int iBody) {
+void AuxPropsLehmer17(BODY *body, EVOLVE *evolve, int iBody) {
   if (body[iBody].bAutoThermTemp) {
     body[iBody].dThermTemp = fdThermalTemp(body, iBody);
   }
@@ -1704,7 +1704,7 @@ void AuxPropsLehmer17(BODY *body, int iBody) {
   body[iBody].dPresSurf =
         fdLehmerPres(body[iBody].dEnvelopeMass, body[iBody].dGravAccel,
                      body[iBody].dRadSolid);
-  body[iBody].dRadXUV = fdLehmerRadius(body, iBody);
+  body[iBody].dRadXUV = fdLehmerRadius(body, evolve->iNumBodies, iBody);
   body[iBody].dRadius = body[iBody].dRadXUV / body[iBody].dXFrac;
 }
 
@@ -1724,14 +1724,14 @@ void fnPropsAuxAtmEsc(BODY *body, EVOLVE *evolve, IO *io, UPDATE *update,
                       int iBody) {
 
   if (body[iBody].iPlanetRadiusModel == ATMESC_LEHMER17) {
-    AuxPropsLehmer17(body, iBody);
+    AuxPropsLehmer17(body, evolve, iBody);
   }
 
   // Compute various radii of interest
   body[iBody].dBondiRadius = fdBondiRadius(body, iBody);
-  body[iBody].dRocheRadius = fdRocheRadius(body, iBody);
+  body[iBody].dRocheRadius = fdRocheRadius(body, evolve->iNumBodies, iBody);
   body[iBody].dAtmEscXi    = fdAtmEscXi(body, iBody);
-  body[iBody].dKTide       = fdKTide(body, io, iBody);
+  body[iBody].dKTide       = fdKTide(body, io, evolve->iNumBodies, iBody);
 
   // The XUV flux
   if (body[iBody].bCalcFXUV) {
@@ -2106,43 +2106,37 @@ void VerifyAtmEsc(BODY *body, CONTROL *control, FILES *files, OPTIONS *options,
   }
 
   if (body[iBody].iPlanetRadiusModel == ATMESC_LEHMER17) {
-    if (body[iBody].dEnvelopeMass >= 0.5 * body[iBody].dMass) {
-      fprintf(stderr,
-              "ERROR: %s's Envelope mass is greater than 50%% of its total "
-              "mass, which ",
+    if (body[0].bStellar) {
+      if (body[iBody].dEnvelopeMass > 0.5 * body[iBody].dMass) {
+        fprintf(stderr,
+                "ERROR: %s's Envelope mass is greater than 50%% of its total "
+                "mass, which ",
+                body[iBody].cName);
+        fprintf(
+              stderr,
+              "is not allowed  for the Lehmer-Catling (2017) envelope model.\n");
+        DoubleLineExit(files->Infile[iBody + 1].cIn, files->Infile[iBody + 1].cIn,
+                      options[OPT_ENVELOPEMASS].iLine[iBody + 1],
+                      options[OPT_MASS].iLine[iBody + 1]);
+      }
+      if (body[iBody].dEnvelopeMass >= 0.1 * body[iBody].dMass) {
+        fprintf(
+              stderr,
+              "WARNING: Envelope masses more than 10%% of the total mass are not "
+              "recommended for the Lehmer-Catling (2017) envelope model. %s's "
+              "envelope ",
               body[iBody].cName);
-      fprintf(
-            stderr,
-            "is not allowed  for the Lehmer-Catling (2017) envelope model.\n");
-      DoubleLineExit(files->Infile[iBody + 1].cIn, files->Infile[iBody + 1].cIn,
-                     options[OPT_ENVELOPEMASS].iLine[iBody + 1],
-                     options[OPT_ENVELOPEMASS].iLine[iBody + 1]);
-    }
-    if (body[iBody].dEnvelopeMass >= 0.1 * body[iBody].dMass) {
-      fprintf(
-            stderr,
-            "WARNING: Envelope masses more than 10%% of the total mass are not "
-            "recommended for the Lehmer-Catling (2017) envelope model. %s's "
-            "envelope ",
-            body[iBody].cName);
-      fprintf(stderr, "mass exceeds this threshold.\n");
-    }
+        fprintf(stderr, "mass exceeds this threshold.\n");
+      }
 
-    // Get thermal temperature
-    if (body[iBody].bAutoThermTemp) {
-      body[iBody].dThermTemp = fdThermalTemp(body, iBody);
+      // Calculate auxiliary properties
+      body[iBody].dRadSolid = fdMassToRad_LehmerCatling17(body[iBody].dMass - body[iBody].dEnvelopeMass);
+      AuxPropsLehmer17(body,&(control->Evolve), iBody);      
+    } else {
+      fprintf(stderr,
+              "ERROR: The Lehmer & Catling (2017) model requires a star.\n");
+      exit(EXIT_INPUT);
     }
-    body[iBody].dRadSolid = fdMassToRad_LehmerCatling17(
-          body[iBody].dMass - body[iBody].dEnvelopeMass);
-    body[iBody].dGravAccel = BIGG *
-                             (body[iBody].dMass - body[iBody].dEnvelopeMass) /
-                             (body[iBody].dRadSolid * body[iBody].dRadSolid);
-    body[iBody].dScaleHeight = body[iBody].dAtmGasConst *
-                               body[iBody].dThermTemp / body[iBody].dGravAccel;
-    body[iBody].dPresSurf =
-          fdLehmerPres(body[iBody].dEnvelopeMass, body[iBody].dGravAccel,
-                       body[iBody].dRadSolid);
-    body[iBody].dRadXUV = fdLehmerRadius(body, iBody);
   } else {
     int iCol, bError = 0;
     for (iCol = 0; iCol < files->Outfile[iBody].iNumCols; iCol++) {
@@ -2316,7 +2310,7 @@ void VerifyAtmEsc(BODY *body, CONTROL *control, FILES *files, OPTIONS *options,
   // Setup radius and other radii of interest
   VerifyRadiusAtmEsc(body, control, options, update, body[iBody].dAge, iBody);
   body[iBody].dBondiRadius = fdBondiRadius(body, iBody);
-  body[iBody].dRocheRadius = fdRocheRadius(body, iBody);
+  body[iBody].dRocheRadius = fdRocheRadius(body, control->Evolve.iNumBodies, iBody);
 
   control->fnForceBehavior[iBody][iModule]   = &fnForceBehaviorAtmEsc;
   control->fnPropsAux[iBody][iModule]        = &fnPropsAuxAtmEsc;
@@ -2828,10 +2822,14 @@ void WriteRGLimit(BODY *body, CONTROL *control, OUTPUT *output, SYSTEM *system,
   double flux = fdHZRG14(body, iBody);
 
   // Convert to semi-major axis *at current eccentricity!*
-  *dTmp = pow(4 * PI * flux /
-                    (body[0].dLuminosity *
-                     pow((1 - body[iBody].dEcc * body[iBody].dEcc), 0.5)),
-              -0.5);
+  if (body[0].dLuminosity == 0) {
+    *dTmp = -1;
+  } else {
+    *dTmp = pow(4 * PI * flux /
+                (body[0].dLuminosity *
+                pow((1 - body[iBody].dEcc * body[iBody].dEcc), 0.5)),
+                -0.5);
+  }
 
   if (output->bDoNeg[iBody]) {
     *dTmp *= output->dNeg;
@@ -3356,10 +3354,14 @@ void WriteFXUVCRITDRAG(BODY *body, CONTROL *control, OUTPUT *output,
   double GPotential =
         (BIGG * body[iBody].dMass * PROTONMASS) / (body[iBody].dRadius);
 
-  *dTmp = ((4 * BDIFF * pow(GPotential, 2)) /
-           (body[iBody].dAtmXAbsEffH2O * KBOLTZ * body[iBody].dFlowTemp *
-            body[iBody].dRadius)) *
-          (QOH - 1) * (1 - XO);
+  if (body[iBody].dAtmXAbsEffH2O > 0 && body[iBody].dFlowTemp > 0 && body[iBody].dRadius > 0) {
+    *dTmp = ((4 * BDIFF * pow(GPotential, 2)) /
+            (body[iBody].dAtmXAbsEffH2O * KBOLTZ * body[iBody].dFlowTemp *
+              body[iBody].dRadius)) *
+            (QOH - 1) * (1 - XO);
+  } else {
+    *dTmp = -1;
+  }
   if (output->bDoNeg[iBody]) {
     *dTmp *= output->dNeg;
     strcpy(cUnit, output->cNeg);
@@ -3425,11 +3427,15 @@ Modifier for H Ref Flux to include oxygen drag at a snapshot in time
 void WriteHRefODragMod(BODY *body, CONTROL *control, OUTPUT *output,
                        SYSTEM *system, UNITS *units, UPDATE *update, int iBody,
                        double *dTmp, char cUnit[]) {
-  double rat = (body[iBody].dCrossoverMass / ATOMMASS - QOH) /
-               (body[iBody].dCrossoverMass / ATOMMASS - 1.);
-  double XO = fdAtomicOxygenMixingRatio(body[iBody].dSurfaceWaterMass,
-                                        body[iBody].dOxygenMass);
-  *dTmp     = pow(1. + (XO / (1. - XO)) * QOH * rat, -1);
+  if (body[iBody].dCrossoverMass / ATOMMASS - 1. != 0) {
+    double rat = (body[iBody].dCrossoverMass / ATOMMASS - QOH) /
+                (body[iBody].dCrossoverMass / ATOMMASS - 1.);
+    double XO = fdAtomicOxygenMixingRatio(body[iBody].dSurfaceWaterMass,
+                                          body[iBody].dOxygenMass);
+    *dTmp     = pow(1. + (XO / (1. - XO)) * QOH * rat, -1);
+  } else {
+    *dTmp = -1;
+  }
   strcpy(cUnit, "");
 }
 
@@ -4078,7 +4084,7 @@ double fdPlanetRadius(BODY *body, SYSTEM *system, int *iaBody) {
     body[iaBody[0]].dPresSurf =
           fdLehmerPres(body[iaBody[0]].dEnvelopeMass,
                        body[iaBody[0]].dGravAccel, body[iaBody[0]].dRadSolid);
-    body[iaBody[0]].dRadXUV = fdLehmerRadius(body, iaBody[0]);
+    body[iaBody[0]].dRadXUV = fdLehmerRadius(body, system->iNumBodies, iaBody[0]);
   }
 
   double foo;
@@ -4130,24 +4136,36 @@ int fbDoesWaterEscape(BODY *body, EVOLVE *evolve, IO *io, int iBody) {
     return 0;
   }
 
+  /* If the central body is not a star, then allow water to escape */
+  if (!body[0].bStellar) {
+    return 1;
+  }
+
   // 2. Check if planet is beyond RG limit; if user requested water loss to stop
   // (the cold trap prevents water loss) then water does not escape.
   // NOTE: The RG flux limit below is calculated based on body zero's
   // spectrum! The Kopparapu+14 limit is for a single star only. This
   // approximation for a binary is only valid if the two stars have
   // similar spectral types, or if body zero dominates the flux.
-  if (fdInstellation(body, iBody) < fdHZRG14(body, iBody)) {
-    if (body[iBody].dRGDuration == 0.) {
-      body[iBody].dRGDuration = body[iBody].dAge;
-      if (io->iVerbose > VERBPROG && !io->baEnterHZMessage[iBody]) {
-        printf("%s enters the habitable zone at %.2lf Myr.\n",
-               body[iBody].cName, evolve->dTime / (YEARSEC * 1e6));
-        io->baEnterHZMessage[iBody] = 1;
+  double dInstellation = fdInstellation(body, iBody);
+  if (dInstellation == -1 && body[iBody].bCalcFXUV == 0) {
+    // Constant XUV flux, so set water to escape
+    return 1;
+  } else {
+    double dRunawayGreenhouseFlux = fdHZRG14(body, iBody);
+    if (dInstellation < dRunawayGreenhouseFlux) {
+      if (body[iBody].dRGDuration == 0.) {
+        body[iBody].dRGDuration = body[iBody].dAge;
+        if (io->iVerbose > VERBPROG && !io->baEnterHZMessage[iBody]) {
+          printf("%s enters the habitable zone at %.2lf Myr.\n",
+                body[iBody].cName, evolve->dTime / (YEARSEC * 1e6));
+          io->baEnterHZMessage[iBody] = 1;
+        }
       }
-    }
-    // Only stop water loss if user requested, which is default
-    if (body[iBody].bStopWaterLossInHZ) {
-      return 0;
+      // Only stop water loss if user requested, which is default
+      if (body[iBody].bStopWaterLossInHZ) {
+        return 0;
+      }
     }
   }
 
@@ -4296,24 +4314,29 @@ double fdXUVEfficiencyBolmont2016(double dFXUV) {
   double c3 = -0.89880083;
 
   // Convert to erg/cm^2/s and take the log
-  double x = log10(dFXUV * 1.e3);
-  double y;
+  double dWaterEscapeEfficiency;
 
-  // Piecewise polynomial fit and handle edge cases
-  if ((x >= -2) && (x < -1)) {
-    y = pow(10, a0 * x * x + a1 * x + a2);
-  } else if ((x >= -1) && (x < 0)) {
-    y = pow(10, b0 * x * x * x + b1 * x * x + b2 * x + b3);
-  } else if ((x >= 0) && (x <= 5)) {
-    y = pow(10, c0 * x * x * x + c1 * x * x + c2 * x + c3);
-  } else if (x < -2) { // Lower flux bound
-    y = 0.001;
-  } else if (x > 5) { // Upper flux bound
-    y = 0.01;
-  } else { // Base case that never happens but DPF likes code symmetry
-    y = 0.1;
+  if (dFXUV > 0) {
+    double x = log10(dFXUV * 1.e3);
+
+    // Piecewise polynomial fit and handle edge cases
+    if ((x >= -2) && (x < -1)) {
+      dWaterEscapeEfficiency = pow(10, a0 * x * x + a1 * x + a2);
+    } else if ((x >= -1) && (x < 0)) {
+      dWaterEscapeEfficiency = pow(10, b0 * x * x * x + b1 * x * x + b2 * x + b3);
+    } else if ((x >= 0) && (x <= 5)) {
+      dWaterEscapeEfficiency = pow(10, c0 * x * x * x + c1 * x * x + c2 * x + c3);
+    } else if (x < -2) { // Lower flux bound
+      dWaterEscapeEfficiency = 0.001;
+    } else if (x > 5) { // Upper flux bound
+      dWaterEscapeEfficiency = 0.01;
+    } else { // Base case that never happens but DPF likes code symmetry
+      dWaterEscapeEfficiency = 0.1;
+    }
+  } else {
+    dWaterEscapeEfficiency = 0; // No escape if F_XUV = 0
   }
-  return y;
+  return dWaterEscapeEfficiency;
 }
 
 /**
@@ -4347,59 +4370,7 @@ void fvLinearFit(double *x, double *y, int iLen, double *daCoeffs) {
   daCoeffs[1] = yavg - daCoeffs[0] * xavg; // Intercept
 }
 
-/**
- Calculate sound speed of a diatomic H (H2) isothermal gaseous atmosphere in
- which the temperature is set by the local equilibrium temperature.
 
- @param dTemp double stellar effective temperature
- @param dRad double stellar radius
- @param dSemi double planetary semi-major axis
-
- @return sound speed
-*/
-double fdEqH2AtmosphereSoundSpeed(double dTemp, double dRad, double dSemi) {
-
-  double dCS = 2300.0 * sqrt(dTemp / 5800.0) * pow(dRad / RSUN, 0.25) *
-               pow(dSemi / (0.1 * AUM), 0.25);
-  return dCS;
-}
-
-/**
- Calculate the Roche radius assuming body 0 is the host star using Eqn. 8 from
- Luger et al. (2015)
-
- @param body BODY struct
- @param iBody int body indentifier
-
- @return Body's Roche radius
-*/
-double fdRocheRadius(BODY *body, int iBody) {
-  double dRoche = pow(body[iBody].dMass / (3.0 * body[0].dMass), 1. / 3.) *
-                  body[iBody].dSemi;
-  return dRoche;
-}
-
-/**
- Calculate the Bondi radius assuming body 0 is the host star and that the
- planetary atmosphere at the Bondi radius is diatomic H2 at the blackbody
- equilibrium temperature set by thermal emission from the host star adapting
- equation. Adapted from equations 2 and 4 from Owen & Wu (2016)
-
- @param body BODY struct
- @param iBody int body indentifier
-
- @return Body's Bondi radius
-*/
-double fdBondiRadius(BODY *body, int iBody) {
-
-  // Compute sound speed in planet's atmosphere assuming a diatomic H atmosphere
-  // assuming body 0 is the star as it should be when using atmesc
-  double cs = fdEqH2AtmosphereSoundSpeed(body[0].dTemperature, body[0].dRadius,
-                                         body[iBody].dSemi);
-  double rb = BIGG * body[iBody].dMass / (2.0 * cs * cs);
-
-  return rb;
-}
 
 /**
  Calculate the whether or not incident XUV flux exceeds critical flux between

@@ -532,16 +532,8 @@ from benchmark import Benchmark, benchmark
             "rtol": 1e-4,
         },
         "log.final.b.DOrbPerDtEqtide": {"value": -3.079014e-13, "rtol": 1e-4},
-        "log.final.b.EccTimeEqtide": {
-            "value": 3.875957e16,
-            "unit": u.sec,
-            "rtol": 1e-4,
-        },
-        "log.final.b.SemiTimeEqtide": {
-            "value": 1.921709e18,
-            "unit": u.sec,
-            "rtol": 1e-4,
-        },
+        "log.final.b.EccTimeEqtide": {"value": 0.000000, "unit": u.sec, "rtol": 1e-4},
+        "log.final.b.SemiTimeEqtide": {"value": 0.000000, "unit": u.sec, "rtol": 1e-4},
         "log.final.b.DHEccDtEqtide": {
             "value": -0.000000,
             "unit": 1 / u.sec,

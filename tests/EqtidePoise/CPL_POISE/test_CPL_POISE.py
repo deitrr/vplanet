@@ -362,7 +362,7 @@ from benchmark import Benchmark, benchmark
         },
         "log.initial.gl514b.EqRotPer": {"value": 4.1433236128887986e06, "unit": u.sec},
         "log.initial.gl514b.EqTidePower": {
-            "value": 0.0000000000000000,
+            "value": 3.4384723793793242e13,
             "unit": 1 / u.sec,
         },
         "log.initial.gl514b.GammaRot": {"value": -1.0000000000000000, "unit": u.sec},
@@ -1067,7 +1067,7 @@ from benchmark import Benchmark, benchmark
             "rtol": 1e-4,
         },
         "log.final.gl514b.EqTidePower": {
-            "value": 0.0000000000000000,
+            "value": 3.4384723793782297e13,
             "unit": 1 / u.sec,
             "rtol": 1e-4,
         },

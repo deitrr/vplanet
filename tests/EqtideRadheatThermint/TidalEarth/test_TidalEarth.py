@@ -192,8 +192,8 @@ from benchmark import Benchmark, benchmark
             "unit": 1 / u.sec**2,
         },
         "log.initial.tidalearth.DOrbPerDtEqtide": {"value": -9.731506e-10},
-        "log.initial.tidalearth.EccTimeEqtide": {"value": 8.599009e14, "unit": u.sec},
-        "log.initial.tidalearth.SemiTimeEqtide": {"value": 1.719776e15, "unit": u.sec},
+        "log.initial.tidalearth.EccTimeEqtide": {"value": 0.000000, "unit": u.sec},
+        "log.initial.tidalearth.SemiTimeEqtide": {"value": 0.000000, "unit": u.sec},
         "log.initial.tidalearth.DHEccDtEqtide": {"value": -0.000000, "unit": 1 / u.sec},
         "log.initial.tidalearth.DKEccDtEqtide": {
             "value": -5.814624e-16,
@@ -357,6 +357,7 @@ from benchmark import Benchmark, benchmark
         "log.initial.tidalearth.EruptEff": {"value": 0.200000},
         "log.initial.tidalearth.TrefLind": {"value": 5600.000000},
         "log.initial.tidalearth.DynViscUMan": {"value": 1.938278e08, "unit": u.Joule},
+        "log.initial.tidalearth.TsolUMan": {"value": 1449.472507},
         "log.final.system.Age": {"value": 3.155760e13, "unit": u.sec, "rtol": 1e-4},
         "log.final.system.Time": {"value": 3.155760e13, "unit": u.sec, "rtol": 1e-4},
         "log.final.system.TotAngMom": {
@@ -736,12 +737,12 @@ from benchmark import Benchmark, benchmark
         },
         "log.final.tidalearth.DOrbPerDtEqtide": {"value": -2.833657e-10, "rtol": 1e-4},
         "log.final.tidalearth.EccTimeEqtide": {
-            "value": 2.801220e15,
+            "value": 0.000000,
             "unit": u.sec,
             "rtol": 1e-4,
         },
         "log.final.tidalearth.SemiTimeEqtide": {
-            "value": 5.822880e15,
+            "value": 0.000000,
             "unit": u.sec,
             "rtol": 1e-4,
         },
@@ -1036,6 +1037,7 @@ from benchmark import Benchmark, benchmark
             "unit": u.Joule,
             "rtol": 1e-4,
         },
+        "log.final.tidalearth.TsolUMan": {"value": 1449.542237, "rtol": 1e-4},
     }
 )
 class Test_TidalEarth(Benchmark):

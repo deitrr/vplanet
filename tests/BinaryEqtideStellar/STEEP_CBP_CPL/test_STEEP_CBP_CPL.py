@@ -251,7 +251,7 @@ from benchmark import Benchmark, benchmark
         },
         "log.initial.secondary.EqRotPerCont": {"value": 2.847374e05, "unit": u.sec},
         "log.initial.secondary.EqRotPer": {"value": 3.456000e05, "unit": u.sec},
-        "log.initial.secondary.EqTidePower": {"value": 0.000000, "unit": 1 / u.sec},
+        "log.initial.secondary.EqTidePower": {"value": 9.931503e24, "unit": 1 / u.sec},
         "log.initial.secondary.GammaRot": {"value": -1.000000, "unit": u.sec},
         "log.initial.secondary.GammaOrb": {"value": -1.000000, "unit": u.sec},
         "log.initial.secondary.OceanK2": {"value": 0.010000},
@@ -878,7 +878,7 @@ from benchmark import Benchmark, benchmark
             "rtol": 1e-4,
         },
         "log.final.secondary.EqTidePower": {
-            "value": 0.000000,
+            "value": 2.002198e24,
             "unit": 1 / u.sec,
             "rtol": 1e-4,
         },
